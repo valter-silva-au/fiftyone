@@ -70,19 +70,28 @@ export const useSelect3DLabelForAnnotation = () => {
       });
 
       if (resolvedArchetype === ANNOTATION_CUBOID) {
+        const cuboidLabel = label as Parameters<
+          typeof setEditingToExistingCuboid
+        >[0];
+
         if (!isReadOnly) {
-          setSelectedLabelForAnnotation(label);
+          setSelectedLabelForAnnotation(cuboidLabel);
           setCurrent3dAnnotationMode(ANNOTATION_CUBOID);
           setCurrentArchetypeSelectedForTransform(resolvedArchetype);
+          setTransformMode("scale");
         }
 
-        setEditingToExistingCuboid(label);
+        setEditingToExistingCuboid(cuboidLabel);
         return;
       }
 
       if (resolvedArchetype === ANNOTATION_POLYLINE) {
+        const polylineLabel = label as Parameters<
+          typeof setEditingToExistingPolyline
+        >[0];
+
         if (!isReadOnly) {
-          setSelectedLabelForAnnotation(label);
+          setSelectedLabelForAnnotation(polylineLabel);
           setCurrent3dAnnotationMode(ANNOTATION_POLYLINE);
           setCurrentArchetypeSelectedForTransform(resolvedArchetype);
 
@@ -92,7 +101,7 @@ export const useSelect3DLabelForAnnotation = () => {
           }
         }
 
-        setEditingToExistingPolyline(label);
+        setEditingToExistingPolyline(polylineLabel);
       }
     },
     [
