@@ -178,7 +178,7 @@ describe("usePatchSampleWith", () => {
         sample: INTERACTION_SAMPLE,
         datasetId: DATASET_ID,
         sampleDeltas: DELTAS,
-      })
+      }),
     );
     const [{ getVersionToken }] = vi.mocked(doPatchSample).mock.calls[0];
     expect(getVersionToken()).toBe("2026-01-01T00:00:00.000");

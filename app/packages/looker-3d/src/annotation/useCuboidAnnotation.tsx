@@ -59,7 +59,7 @@ export const useCuboidAnnotation = ({
         Vector3Tuple,
         Vector3Tuple,
         Vector3Tuple,
-        THREE.Vector4Tuple | null
+        THREE.Vector4Tuple | null,
       ];
       return result;
     }
@@ -138,7 +138,7 @@ export const useCuboidAnnotation = ({
     (transientUpdate: TransientCuboidState) => {
       updateCuboid(labelId, transientUpdate);
     },
-    [labelId, updateCuboid]
+    [labelId, updateCuboid],
   );
 
   const handleFaceResizeEnd = useCallback(() => {

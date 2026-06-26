@@ -46,19 +46,19 @@ export const CreateCuboidRenderer = ({
   const [isCreatingCuboid, setIsCreatingCuboid] =
     useRecoilState(isCreatingCuboidAtom);
   const setSelectedLabelForAnnotation = useSetRecoilState(
-    selectedLabelForAnnotationAtom
+    selectedLabelForAnnotationAtom,
   );
   const setCurrentArchetypeSelectedForTransform = useSetRecoilState(
-    currentArchetypeSelectedForTransformAtom
+    currentArchetypeSelectedForTransformAtom,
   );
   const setTransformMode = useSetRecoilState(transformModeAtom);
   const { createCuboid } = useCuboidOperations();
   const annotationPlane = useRecoilValue(annotationPlaneAtom);
   const [creationState, setCreationState] = useRecoilState(
-    cuboidCreationStateAtom
+    cuboidCreationStateAtom,
   );
   const setIsCreatingCuboidPointerDown = useSetRecoilState(
-    isCreatingCuboidPointerDownAtom
+    isCreatingCuboidPointerDownAtom,
   );
 
   const setEditingToNewCuboid = useSetEditingToNewCuboid();
@@ -79,7 +79,7 @@ export const CreateCuboidRenderer = ({
   const raycastPlane = useMemo(() => {
     const plane = getPlaneFromPositionAndQuaternion(
       annotationPlane.position,
-      annotationPlane.quaternion
+      annotationPlane.quaternion,
     );
 
     return {
@@ -91,7 +91,7 @@ export const CreateCuboidRenderer = ({
   // Calculate preview cuboid properties based on creation state
   const previewCuboid = useMemo(
     () => getCuboidCreationPreview(creationState, annotationPlane),
-    [creationState, annotationPlane]
+    [creationState, annotationPlane],
   );
 
   // Handle click - progress through creation steps
@@ -147,7 +147,7 @@ export const CreateCuboidRenderer = ({
       setCreationState,
       setIsCreatingCuboidPointerDown,
       annotationEventBus,
-    ]
+    ],
   );
 
   // Handle pointer move - update current position for preview
@@ -167,7 +167,7 @@ export const CreateCuboidRenderer = ({
         currentPosition: position,
       }));
     },
-    [isCreatingCuboid, creationState.step, setCreationState]
+    [isCreatingCuboid, creationState.step, setCreationState],
   );
 
   // Handle final click (step 2) - commit the cuboid
@@ -245,7 +245,7 @@ export const CreateCuboidRenderer = ({
       setTransformMode,
       resetCuboidCreation,
       workingDoc,
-    ]
+    ],
   );
 
   // Reset creation state when create mode is disabled
