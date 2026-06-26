@@ -1,4 +1,7 @@
-import { useActiveModalSample, useModalSampleSchema } from "@fiftyone/state";
+import {
+  useModalInteractionSample,
+  useModalSampleSchema,
+} from "@fiftyone/state";
 import { Primitive } from "@fiftyone/utilities";
 import { atom, useAtom } from "jotai";
 import { get, isEqual } from "lodash";
@@ -58,7 +61,7 @@ export interface SampleMutationManager {
  */
 export const useSampleMutationManager = (): SampleMutationManager => {
   const [stagedMutations, setStagedMutations] = useAtom(stagedMutationsAtom);
-  const sample = useActiveModalSample();
+  const sample = useModalInteractionSample();
   const modalSampleSchema = useModalSampleSchema();
   const firstRenderRef = useRef(true);
 
