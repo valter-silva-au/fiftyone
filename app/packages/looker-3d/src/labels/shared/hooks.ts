@@ -33,6 +33,10 @@ const getDetailsFromLabel = (label: any) => {
   };
 };
 
+const shouldSuppressLabelTooltip = (
+  e?: Pick<ThreeEvent<PointerEvent>, "altKey" | "metaKey" | "shiftKey">,
+) => Boolean(e?.shiftKey || e?.metaKey || e?.altKey);
+
 /**
  * Custom hook for managing hover state and cursor behavior
  */
@@ -59,7 +63,7 @@ export const useHoverState = (): HoverState => {
 const useMeshTooltipProps = (label: any) => {
   const onPointerOver = useRecoilCallback(
     ({ snapshot, set }) =>
-      () => {
+      (e?: ThreeEvent<PointerEvent>) => {
         const selectedLabel = snapshot
           .getLoadable(selectedLabelForAnnotationAtom)
           .getValue();
@@ -70,7 +74,17 @@ const useMeshTooltipProps = (label: any) => {
         );
         if (isCurrentlyTransforming) return;
 
-        set(fos.tooltipDetail, getDetailsFromLabel(label));
+        const isTooltipLocked = snapshot
+          .getLoadable(fos.isTooltipLocked)
+          .getValue();
+
+        if (!isTooltipLocked) {
+          if (shouldSuppressLabelTooltip(e)) {
+            set(fos.tooltipDetail, null);
+          } else {
+            set(fos.tooltipDetail, getDetailsFromLabel(label));
+          }
+        }
 
         if (!label.instance || !label.sampleId) return;
 
@@ -141,6 +155,11 @@ const useMeshTooltipProps = (label: any) => {
 
         if (isTooltipLocked) return;
 
+        if (shouldSuppressLabelTooltip(e)) {
+          set(fos.tooltipDetail, null);
+          return;
+        }
+
         if (e.ctrlKey) {
           set(fos.isTooltipLocked, true);
         } else {
@@ -170,15 +189,18 @@ export const useEventHandlers = (label: any): EventHandlers => {
   const annotationEventBus = useAnnotationEventBus();
 
   return {
-    onPointerOver: useCallback(() => {
-      if (canAnnotate) {
-        annotationEventBus.dispatch("annotation:canvasOverlayHover", {
-          id: label.id ?? label._id,
-        });
-      }
+    onPointerOver: useCallback(
+      (e?: ThreeEvent<PointerEvent>) => {
+        if (canAnnotate) {
+          annotationEventBus.dispatch("annotation:canvasOverlayHover", {
+            id: label.id ?? label._id,
+          });
+        }
 
-      _onPointerOver();
-    }, [label, canAnnotate, annotationEventBus, _onPointerOver]),
+        _onPointerOver(e);
+      },
+      [label, canAnnotate, annotationEventBus, _onPointerOver],
+    ),
     onPointerOut: useCallback(() => {
       if (canAnnotate) {
         annotationEventBus.dispatch("annotation:canvasOverlayUnhover", {
