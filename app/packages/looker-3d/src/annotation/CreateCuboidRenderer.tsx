@@ -7,6 +7,7 @@ import { useEmptyCanvasInteraction } from "../hooks/use-empty-canvas-interaction
 import type { CuboidCreationState } from "../types";
 import {
   annotationPlaneAtom,
+  continuousCuboidCreationAtom,
   cuboidCreationStateAtom,
   currentActiveAnnotationField3dAtom,
   isCreatingCuboidAtom,
@@ -50,6 +51,7 @@ export const CreateCuboidRenderer = ({
   const { selectNewCuboidForTransform, setTransformMode } =
     useCuboidTransformCommands();
   const { createCuboid } = useCuboidOperations();
+  const continuousCreation = useRecoilValue(continuousCuboidCreationAtom);
   const annotationPlane = useRecoilValue(annotationPlaneAtom);
   const [creationState, setCreationState] = useRecoilState(
     cuboidCreationStateAtom,
@@ -204,25 +206,33 @@ export const CreateCuboidRenderer = ({
 
         createCuboid(labelId, transformData, currentActiveField, labelClass);
 
-        setEditingToNewCuboid(labelId, transformData, labelClass);
-
         recordLastCreatedLabel(currentActiveField, labelClass);
 
-        setSelectedLabelForAnnotation({
-          _id: labelId,
-          _cls: DETECTION,
-          location,
-          dimensions,
-          quaternion,
-        });
-        selectNewCuboidForTransform();
-        setTransformMode("scale");
+        if (continuousCreation) {
+          // Stay in create mode so the user can place the next cuboid
+          // back-to-back. The new cuboid is committed to the working store but
+          // not selected for editing; Escape (or toggling the create button)
+          // exits create mode.
+          resetCuboidCreation();
+        } else {
+          // Select the freshly created cuboid and drop into edit mode so the
+          // user can immediately fine-tune it, then exit create mode.
+          setEditingToNewCuboid(labelId, transformData, labelClass);
 
-        // Exit create mode after creating one cuboid
-        setIsCreatingCuboid(false);
+          setSelectedLabelForAnnotation({
+            _id: labelId,
+            _cls: DETECTION,
+            location,
+            dimensions,
+            quaternion,
+          });
+          selectNewCuboidForTransform();
+          setTransformMode("scale");
 
-        // Reset creation state
-        resetCuboidCreation();
+          setIsCreatingCuboid(false);
+
+          resetCuboidCreation();
+        }
       } else if (creationState.step < 2) {
         // Handle clicks for steps 0 and 1
         handleClick(intersectionPoint);
@@ -233,6 +243,7 @@ export const CreateCuboidRenderer = ({
       currentActiveField,
       creationState.step,
       previewCuboid,
+      continuousCreation,
       createCuboid,
       handleClick,
       selectNewCuboidForTransform,
