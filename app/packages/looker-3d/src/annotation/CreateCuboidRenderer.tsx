@@ -9,11 +9,10 @@ import {
   annotationPlaneAtom,
   cuboidCreationStateAtom,
   currentActiveAnnotationField3dAtom,
-  currentArchetypeSelectedForTransformAtom,
   isCreatingCuboidAtom,
   isCreatingCuboidPointerDownAtom,
   selectedLabelForAnnotationAtom,
-  transformModeAtom,
+  useCuboidTransformCommands,
 } from "../state";
 import { getPlaneFromPositionAndQuaternion } from "../utils";
 import { getCuboidCreationPreview } from "./cuboid-creation-preview";
@@ -48,10 +47,8 @@ export const CreateCuboidRenderer = ({
   const setSelectedLabelForAnnotation = useSetRecoilState(
     selectedLabelForAnnotationAtom,
   );
-  const setCurrentArchetypeSelectedForTransform = useSetRecoilState(
-    currentArchetypeSelectedForTransformAtom,
-  );
-  const setTransformMode = useSetRecoilState(transformModeAtom);
+  const { selectNewCuboidForTransform, setTransformMode } =
+    useCuboidTransformCommands();
   const { createCuboid } = useCuboidOperations();
   const annotationPlane = useRecoilValue(annotationPlaneAtom);
   const [creationState, setCreationState] = useRecoilState(
@@ -218,7 +215,7 @@ export const CreateCuboidRenderer = ({
           dimensions,
           quaternion,
         });
-        setCurrentArchetypeSelectedForTransform("cuboid");
+        selectNewCuboidForTransform();
         setTransformMode("scale");
 
         // Exit create mode after creating one cuboid
@@ -238,7 +235,7 @@ export const CreateCuboidRenderer = ({
       previewCuboid,
       createCuboid,
       handleClick,
-      setCurrentArchetypeSelectedForTransform,
+      selectNewCuboidForTransform,
       setEditingToNewCuboid,
       setIsCreatingCuboid,
       setSelectedLabelForAnnotation,
