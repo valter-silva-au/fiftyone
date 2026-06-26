@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
 import * as THREE from "three";
 import { useEmptyCanvasInteraction } from "../hooks/use-empty-canvas-interaction";
+import { useScenePointClouds } from "../hooks/use-scene-point-clouds";
 import type { CuboidCreationState } from "../types";
 import {
   annotationPlaneAtom,
@@ -17,6 +18,7 @@ import {
 } from "../state";
 import { getPlaneFromPositionAndQuaternion } from "../utils";
 import { getCuboidCreationPreview } from "./cuboid-creation-preview";
+import { fitCuboidHeightToPoints } from "./fit-cuboid-to-points";
 import { useCuboidOperations } from "./store/operations";
 import {
   getDefaultLabel,
@@ -62,6 +64,7 @@ export const CreateCuboidRenderer = ({
 
   const setEditingToNewCuboid = useSetEditingToNewCuboid();
   const workingDoc = useRecoilValue(workingDocSelector);
+  const getScenePointClouds = useScenePointClouds();
 
   const annotationEventBus = useAnnotationEventBus();
 
@@ -177,16 +180,25 @@ export const CreateCuboidRenderer = ({
       if (creationState.step === 2 && previewCuboid) {
         const labelId = objectId();
 
+        // The gesture sets the footprint (length/width) and orientation but not
+        // the height. Derive the height and vertical center from the point-cloud
+        // points inside that footprint so the box wraps the object instead of
+        // using a placeholder height that forces a manual resize afterwards.
+        const fittedCuboid = fitCuboidHeightToPoints(
+          previewCuboid,
+          getScenePointClouds(),
+        );
+
         const location: THREE.Vector3Tuple = [
-          Number(previewCuboid.location[0].toFixed(7)),
-          Number(previewCuboid.location[1].toFixed(7)),
-          Number(previewCuboid.location[2].toFixed(7)),
+          Number(fittedCuboid.location[0].toFixed(7)),
+          Number(fittedCuboid.location[1].toFixed(7)),
+          Number(fittedCuboid.location[2].toFixed(7)),
         ];
 
         const dimensions: THREE.Vector3Tuple = [
-          Number(previewCuboid.dimensions[0].toFixed(7)),
-          Number(previewCuboid.dimensions[1].toFixed(7)),
-          Number(previewCuboid.dimensions[2].toFixed(7)),
+          Number(fittedCuboid.dimensions[0].toFixed(7)),
+          Number(fittedCuboid.dimensions[1].toFixed(7)),
+          Number(fittedCuboid.dimensions[2].toFixed(7)),
         ];
 
         const quaternion: [number, number, number, number] = [
@@ -244,6 +256,7 @@ export const CreateCuboidRenderer = ({
       creationState.step,
       previewCuboid,
       continuousCreation,
+      getScenePointClouds,
       createCuboid,
       handleClick,
       selectNewCuboidForTransform,
