@@ -282,7 +282,7 @@ export const SegmentPolylineRenderer = ({
   });
 
   useEffect(() => {
-    if (ignoreEffects) return;
+    if (ignoreEffects) return undefined;
 
     if (segmentState.isActive) {
       setTooltipDetail(null);
@@ -291,12 +291,15 @@ export const SegmentPolylineRenderer = ({
         document.body.style.cursor = "default";
       };
     }
+
+    return undefined;
   }, [segmentState.isActive]);
 
   useEffect(() => {
-    if (ignoreEffects) return;
+    if (ignoreEffects) return undefined;
 
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) return;
       if (!segmentState.isActive) return;
 
       // Handle Escape key - cancel segmentation
