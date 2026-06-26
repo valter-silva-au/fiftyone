@@ -1,24 +1,50 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
 import { renderHook } from "@testing-library/react";
 
-vi.mock("../util", () => ({
-  doPatchSample: vi.fn(),
-}));
+vi.mock("../util", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../util")>();
+
+  return {
+    ...actual,
+    doPatchSample: vi.fn(),
+  };
+});
 
 vi.mock("@fiftyone/state", () => ({
-  generatedDatasetName: null,
-  isGeneratedView: false,
+  generatedDatasetName: "generatedDatasetName",
+  isGeneratedView: "isGeneratedView",
   useCurrentDatasetId: vi.fn(),
-  useModalSample: vi.fn(),
+  useModalInteractionSample: vi.fn(),
   useRefreshSample: vi.fn(),
 }));
 
+vi.mock("recoil", () => ({
+  useRecoilValue: vi.fn(),
+}));
+
 import { doPatchSample } from "../util";
-import { usePatchSampleWith } from "./usePatchSample";
+import { usePatchSample, usePatchSampleWith } from "./usePatchSample";
 import type { Sample } from "@fiftyone/looker";
 import type { JSONDeltas } from "@fiftyone/core/src/client";
+import {
+  generatedDatasetName,
+  isGeneratedView,
+  useCurrentDatasetId,
+  useModalInteractionSample,
+  useRefreshSample,
+} from "@fiftyone/state";
+import { useRecoilValue } from "recoil";
 
 const SAMPLE: Sample = { id: "sample-1" } as Sample;
+const INTERACTION_SAMPLE = {
+  _id: "interaction-sample-1",
+  id: "interaction-sample-1",
+  filepath: "/tmp/sample.png",
+  last_modified_at: { datetime: Date.UTC(2026, 0, 1) },
+  metadata: { height: 100, width: 100 },
+  tags: [],
+  _media_type: "image",
+} as unknown as Sample;
 const DATASET_ID = "dataset-1";
 const VERSION_TOKEN = "tok-abc";
 const DELTAS: JSONDeltas = [
@@ -41,6 +67,18 @@ describe("usePatchSampleWith", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(doPatchSample).mockResolvedValue(true);
+    vi.mocked(useModalInteractionSample).mockReturnValue(INTERACTION_SAMPLE);
+    vi.mocked(useCurrentDatasetId).mockReturnValue(DATASET_ID);
+    vi.mocked(useRefreshSample).mockReturnValue(vi.fn());
+    vi.mocked(useRecoilValue).mockImplementation((key) => {
+      if (key === isGeneratedView) {
+        return false;
+      }
+      if (key === generatedDatasetName) {
+        return null;
+      }
+      return null;
+    });
   });
 
   it("delegates to doPatchSample with the provided sample and deltas", async () => {
@@ -128,5 +166,21 @@ describe("usePatchSampleWith", () => {
     const { result } = renderHook(() => usePatchSampleWith(makeArgs()));
 
     await expect(result.current(DELTAS)).rejects.toThrow("network error");
+  });
+
+  it("uses the modal interaction sample and matching version token by default", async () => {
+    const { result } = renderHook(() => usePatchSample());
+
+    await result.current(DELTAS);
+
+    expect(doPatchSample).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sample: INTERACTION_SAMPLE,
+        datasetId: DATASET_ID,
+        sampleDeltas: DELTAS,
+      })
+    );
+    const [{ getVersionToken }] = vi.mocked(doPatchSample).mock.calls[0];
+    expect(getVersionToken()).toBe("2026-01-01T00:00:00.000");
   });
 });

@@ -11,11 +11,10 @@ import { preferredGroupAnnotationSliceAtom } from "../../jotai/group-annotation"
 import type { ModalViewportState } from "../../jotai/modal";
 import { __unsafeModalViewportAtom } from "../../jotai/modal";
 import type { ModalSample } from "../../recoil";
-import type { Sample } from "@fiftyone/looker";
 import {
   State,
-  activeFields,
   activeModalSample,
+  activeFields,
   currentSampleId,
   fieldSchema,
   lookerOptions,
@@ -73,10 +72,13 @@ export const useModalModeController = (): ModalModeController => {
 export const useModalMode = () => useAtomValue(modalMode);
 
 /**
- * Get the current modal sample data.
+ * Get the sample wrapper for the modal's displayed sample.
  *
- * If the modal is not open, or the sample is being loaded, this hook will
- * return `undefined`.
+ * Use this when callers need `ModalSample` metadata such as URLs, aspect
+ * ratio, or other data tied to the media currently shown in the modal.
+ *
+ * If the modal is not open, or the sample is being loaded, this returns
+ * `undefined`.
  */
 export const useModalSample = (): ModalSample | undefined => {
   const loadable = useRecoilValueLoadable(modalSample);
@@ -89,21 +91,33 @@ export const useModalSample = (): ModalSample | undefined => {
 };
 
 /**
- * Get the sample currently being acted on in the modal.
+ * Get the raw sample targeted by modal-scoped interactions.
  *
- * Unlike {@link useModalSample}, which always resolves the 2D `modalGroupSlice`
- * sample, this is 3D-aware: when a 3D slice is pinned it returns that slice's
- * sample. It mirrors the sample the sidebar and looker display, so annotation
- * edits persist to the slice the user is actually editing (e.g. a cuboid edit
- * targets the point-cloud sample, not the 2D image slice).
+ * Use this when callers need to read or write the sample that should receive
+ * the user's current modal action. In grouped contexts, this may differ from
+ * the displayed sample returned by {@link useModalSample}.
  *
- * Returns `undefined` if the modal is closed or the sample is still loading.
+ * Note: reconcile this with {@link useModalSample} by exposing clearer
+ * displayed-sample and interaction-target APIs for both wrapper and raw sample
+ * data.
  */
-export const useActiveModalSample = (): Sample | undefined => {
+export const useModalInteractionSample = ():
+  | ModalSample["sample"]
+  | undefined => {
   const loadable = useRecoilValueLoadable(activeModalSample);
 
   if (loadable.state === "hasValue") {
-    return loadable.contents;
+    return loadable.contents as ModalSample["sample"];
+  }
+
+  // In an error loadable, `contents` is the thrown error. Missing grouped
+  // slice samples are an expected absence; every other selector failure should
+  // still reach the nearest error boundary.
+  if (
+    loadable.state === "hasError" &&
+    !(loadable.contents instanceof GroupSampleNotFound)
+  ) {
+    throw loadable.contents;
   }
 
   return undefined;

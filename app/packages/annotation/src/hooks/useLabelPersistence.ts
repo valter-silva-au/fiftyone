@@ -1,6 +1,6 @@
 import type { Field } from "@fiftyone/utilities";
 import { useCallback } from "react";
-import { isGeneratedView, useActiveModalSample } from "@fiftyone/state";
+import { isGeneratedView, useModalInteractionSample } from "@fiftyone/state";
 import { useRecoilValue } from "recoil";
 import { usePatchSample } from "./usePatchSample";
 import { handleLabelPersistence, type LabelPersistenceArgs } from "../util";
@@ -48,7 +48,7 @@ export const useUpsertLabel = (): ((
   const isGenerated = useRecoilValue(isGeneratedView);
 
   return useLabelPersistenceWith({
-    sample: useActiveModalSample(),
+    sample: useModalInteractionSample(),
     applyPatch: usePatchSample(),
     opType: "mutate",
     isGenerated,
@@ -66,7 +66,7 @@ export const useDeleteLabel = (): ((
   const isGenerated = useRecoilValue(isGeneratedView);
 
   return useLabelPersistenceWith({
-    sample: useActiveModalSample(),
+    sample: useModalInteractionSample(),
     applyPatch: usePatchSample(),
     opType: "delete",
     isGenerated,

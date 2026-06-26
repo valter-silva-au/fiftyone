@@ -1,4 +1,4 @@
-import { useActiveModalSample } from "@fiftyone/state";
+import { useModalInteractionSample } from "@fiftyone/state";
 import { useCallback } from "react";
 import type { Sample } from "@fiftyone/looker";
 import { getSampleVersionToken } from "../util";
@@ -17,8 +17,9 @@ export const useGetVersionTokenWith = ({
 };
 
 /**
- * Hook which returns a version token getter for the current modal sample.
+ * Hook which returns a version token getter for the current modal interaction
+ * sample.
  */
 export const useGetVersionToken = (): (() => string | null) => {
-  return useGetVersionTokenWith({ sample: useActiveModalSample() });
+  return useGetVersionTokenWith({ sample: useModalInteractionSample() });
 };

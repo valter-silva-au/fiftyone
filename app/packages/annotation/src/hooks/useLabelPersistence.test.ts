@@ -7,7 +7,7 @@ vi.mock("../util", () => ({
 
 vi.mock("@fiftyone/state", () => ({
   isGeneratedView: { key: "isGeneratedView" },
-  useActiveModalSample: vi.fn(),
+  useModalInteractionSample: vi.fn(),
 }));
 
 vi.mock("recoil", () => ({
@@ -19,31 +19,32 @@ vi.mock("./usePatchSample", () => ({
 }));
 
 import { handleLabelPersistence } from "../util";
-import { useActiveModalSample, isGeneratedView } from "@fiftyone/state";
+import { useModalInteractionSample, isGeneratedView } from "@fiftyone/state";
 import { useRecoilValue } from "recoil";
 import { usePatchSample } from "./usePatchSample";
 import { useUpsertLabel, useDeleteLabel } from "./useLabelPersistence";
 import type { Field } from "@fiftyone/utilities";
+import type { DetectionLabel } from "@fiftyone/looker/src/overlays/detection";
 import type { LabelProxy } from "../deltas";
 
 const SAMPLE = { id: "sample-1" };
 const LABEL: LabelProxy = {
   type: "Detection",
   path: "predictions",
-  data: { _id: "label-1", label: "cat" },
+  data: { _cls: "Detection", _id: "label-1", label: "cat" } as DetectionLabel,
   boundingBox: [0.1, 0.2, 0.3, 0.4],
 };
 const SCHEMA: Field = { name: "detections" } as Field;
 
 describe("useUpsertLabel / useDeleteLabel", () => {
-  let mockApplyPatch: ReturnType<typeof vi.fn>;
+  let mockApplyPatch: ReturnType<typeof usePatchSample>;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockApplyPatch = vi.fn().mockResolvedValue(true);
+    mockApplyPatch = vi.fn(async () => true);
 
     vi.mocked(useRecoilValue).mockReturnValue(false);
-    vi.mocked(useActiveModalSample).mockReturnValue(SAMPLE as any);
+    vi.mocked(useModalInteractionSample).mockReturnValue(SAMPLE as any);
     vi.mocked(usePatchSample).mockReturnValue(mockApplyPatch);
     vi.mocked(handleLabelPersistence).mockResolvedValue(true);
   });

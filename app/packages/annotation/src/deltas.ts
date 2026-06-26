@@ -8,11 +8,11 @@ import type { KeypointLabel } from "@fiftyone/lighter";
 import type { ClassificationLabel } from "@fiftyone/looker/src/overlays/classifications";
 import type { DetectionLabel } from "@fiftyone/looker/src/overlays/detection";
 import type { PolylineLabel } from "@fiftyone/looker/src/overlays/polyline";
+import type { Sample } from "@fiftyone/looker";
 import type {
   AnnotationLabel,
   DetectionAnnotationLabel,
   PrimitiveValue,
-  Sample,
 } from "@fiftyone/state";
 import { Field, isObject, Primitive } from "@fiftyone/utilities";
 import { get } from "lodash";
@@ -382,7 +382,7 @@ const buildPrimitiveMutationDelta = (
   // convert any undefined values to null so they are serialized
   // as null for the server
   const newValue = data ?? null;
-  const existingValue = get(sample, path) ?? null;
+  const existingValue = (get(sample, path) ?? null) as Primitive;
 
   // If the value hasn't changed, return empty deltas
   if (arePrimitivesEqual(existingValue, newValue)) {

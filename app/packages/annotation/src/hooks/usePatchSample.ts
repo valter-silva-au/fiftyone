@@ -1,8 +1,8 @@
 import {
   generatedDatasetName as generatedDatasetNameAtom,
   isGeneratedView,
-  useActiveModalSample,
   useCurrentDatasetId,
+  useModalInteractionSample,
   useRefreshSample,
 } from "@fiftyone/state";
 import { useCallback } from "react";
@@ -78,9 +78,10 @@ export const usePatchSample = (): ((
 ) => Promise<boolean>) => {
   const isGenerated = useRecoilValue(isGeneratedView);
   const generatedDatasetName = useRecoilValue(generatedDatasetNameAtom);
+  const interactionSample = useModalInteractionSample();
 
   return usePatchSampleWith({
-    sample: useActiveModalSample(),
+    sample: interactionSample,
     datasetId: useCurrentDatasetId(),
     getVersionToken: useGetVersionToken(),
     refreshSample: useRefreshSample(),
