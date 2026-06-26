@@ -96,10 +96,6 @@ export const useModalSample = (): ModalSample | undefined => {
  * Use this when callers need to read or write the sample that should receive
  * the user's current modal action. In grouped contexts, this may differ from
  * the displayed sample returned by {@link useModalSample}.
- *
- * Note: reconcile this with {@link useModalSample} by exposing clearer
- * displayed-sample and interaction-target APIs for both wrapper and raw sample
- * data.
  */
 export const useModalInteractionSample = ():
   | ModalSample["sample"]
@@ -107,7 +103,7 @@ export const useModalInteractionSample = ():
   const loadable = useRecoilValueLoadable(activeModalSample);
 
   if (loadable.state === "hasValue") {
-    return loadable.contents as ModalSample["sample"];
+    return loadable.contents;
   }
 
   // In an error loadable, `contents` is the thrown error. Missing grouped

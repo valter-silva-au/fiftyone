@@ -74,9 +74,6 @@ describe("usePatchSampleWith", () => {
       if (key === isGeneratedView) {
         return false;
       }
-      if (key === generatedDatasetName) {
-        return null;
-      }
       return null;
     });
   });

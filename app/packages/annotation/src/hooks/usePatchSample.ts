@@ -78,10 +78,9 @@ export const usePatchSample = (): ((
 ) => Promise<boolean>) => {
   const isGenerated = useRecoilValue(isGeneratedView);
   const generatedDatasetName = useRecoilValue(generatedDatasetNameAtom);
-  const interactionSample = useModalInteractionSample();
 
   return usePatchSampleWith({
-    sample: interactionSample,
+    sample: useModalInteractionSample(),
     datasetId: useCurrentDatasetId(),
     getVersionToken: useGetVersionToken(),
     refreshSample: useRefreshSample(),
